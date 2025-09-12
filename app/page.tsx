@@ -77,9 +77,21 @@ export default function Home() {
   };
 
   const downloadImage = (imageUrl: string, albumName: string, artistName: string) => {
+    const showName = prompt('Enter the name of the show:');
+    
+    if (showName === null) {
+      // User cancelled the prompt
+      return;
+    }
+    
+    if (showName.trim() === '') {
+      alert('Please enter a valid show name.');
+      return;
+    }
+    
     const link = document.createElement('a');
     link.href = imageUrl;
-    link.download = `${artistName} - ${albumName}.jpg`;
+    link.download = `art-${showName.trim()}.jpg`;
     link.target = '_blank';
     document.body.appendChild(link);
     link.click();
