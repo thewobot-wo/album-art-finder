@@ -76,6 +76,12 @@ export default function Home() {
     return result.source === 'itunes' ? result.artistName : result.artist?.name;
   };
 
+  const addTermToAlbum = (term: string) => {
+    if (!album.includes(term)) {
+      setAlbum(prev => prev.trim() ? `${prev.trim()} ${term}` : term);
+    }
+  };
+
   const downloadImage = async (imageUrl: string, albumName: string, artistName: string) => {
     const showName = prompt('Enter the name of the show:');
     
@@ -133,14 +139,30 @@ export default function Home() {
               onChange={(e) => setArtist(e.target.value)}
               className="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-400"
             />
-            <input
-              type="text"
-              placeholder="Album name"
-              value={album}
-              onChange={(e) => setAlbum(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && searchAlbum()}
-              className="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-400"
-            />
+            <div className="space-y-2">
+              <input
+                type="text"
+                placeholder="Album name"
+                value={album}
+                onChange={(e) => setAlbum(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && searchAlbum()}
+                className="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-400"
+              />
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => addTermToAlbum('Broadway')}
+                  className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600 hover:text-white transition-colors"
+                >
+                  + Broadway
+                </button>
+                <button
+                  onClick={() => addTermToAlbum('Musical')}
+                  className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600 hover:text-white transition-colors"
+                >
+                  + Musical
+                </button>
+              </div>
+            </div>
             <button
               onClick={searchAlbum}
               disabled={loading}
