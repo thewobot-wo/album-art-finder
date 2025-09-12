@@ -1,7 +1,7 @@
-<svg width="800" height="200" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+<svg width="1200" height="300" viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
   <!-- Yellow background rectangle with black border -->
-  <rect x="10" y="10" width="780" height="180" fill="#FFD700" stroke="black" stroke-width="4"/>
+  <rect x="5" y="5" width="1190" height="290" fill="#FFFF00" stroke="black" stroke-width="10"/>
   
   <!-- PLAYART® text -->
-  <text x="400" y="125" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="black">PLAYART®</text>
+  <text x="600" y="200" font-family="Arial Black, Arial, sans-serif" font-size="120" font-weight="900" text-anchor="middle" fill="black" letter-spacing="8px">PLAYART®</text>
 </svg>
