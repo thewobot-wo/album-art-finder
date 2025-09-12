@@ -3,5 +3,5 @@
   <rect x="5" y="5" width="1190" height="290" fill="#FFFF00" stroke="black" stroke-width="10"/>
   
   <!-- PLAYART® text -->
-  <text x="600" y="200" font-family="Arial Black, Arial, sans-serif" font-size="120" font-weight="900" text-anchor="middle" fill="black" letter-spacing="8px">PLAYART®</text>
+  <text x="600" y="200" font-family="Arial Black, Arial, sans-serif" font-size="120" font-weight="900" text-anchor="middle" fill="black" letter-spacing="8px">PLAYART</text>
 </svg>

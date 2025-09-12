@@ -76,7 +76,7 @@ export default function Home() {
     return result.source === 'itunes' ? result.artistName : result.artist?.name;
   };
 
-  const downloadImage = (imageUrl: string, albumName: string, artistName: string) => {
+  const downloadImage = async (imageUrl: string, albumName: string, artistName: string) => {
     const showName = prompt('Enter the name of the show:');
     
     if (showName === null) {
@@ -89,13 +89,28 @@ export default function Home() {
       return;
     }
     
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `art-${showName.trim()}.jpg`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // Fetch the image as a blob to avoid cross-origin issues
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `art-${showName.trim()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Download failed. Please try again.');
+    }
   };
 
   return (
@@ -129,7 +144,7 @@ export default function Home() {
             <button
               onClick={searchAlbum}
               disabled={loading}
-              className="w-full bg-yellow-400 text-black p-3 rounded-lg hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+              className="w-full bg-yellow-500 text-black p-3 rounded-lg hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
             >
               {loading ? 'Searching...' : 'Search Album Art'}
             </button>
