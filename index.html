@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Album Art Finder</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 20px;
+            }
+            input,
+            button {
+                padding: 10px;
+                margin: 5px 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            button {
+                background: #007bff;
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #0056b3;
+            }
+            .result {
+                margin-top: 20px;
+                text-align: center;
+            }
+            img {
+                max-width: 300px;
+                border-radius: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Album Art Finder</h1>
+        <input type="text" id="artist" placeholder="Artist name (optional)" />
+        <input type="text" id="album" placeholder="Album name" />
+        <button onclick="searchAlbum()">Search Album Art</button>
+
+        <div id="result" class="result"></div>
+
+        <script>
+            async function searchAlbum() {
+                const artist = document.getElementById("artist").value;
+                const album = document.getElementById("album").value;
+                const resultDiv = document.getElementById("result");
+
+                if (!album) {
+                    resultDiv.innerHTML = "<p>Please enter an album name</p>";
+                    return;
+                }
+
+                resultDiv.innerHTML = "<p>Searching...</p>";
+
+                const query = artist ? `${artist} ${album}` : album;
+
+                try {
+                    const response = await fetch(
+                        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=1`,
+                    );
+                    const data = await response.json();
+
+                    if (data.results && data.results.length > 0) {
+                        const albumData = data.results[0];
+                        const highResImage = albumData.artworkUrl100.replace(
+                            "100x100",
+                            "1200x1200",
+                        );
+
+                        resultDiv.innerHTML = `
+                        <h2>${albumData.collectionName}</h2>
+                        <p>by ${albumData.artistName}</p>
+                        <img src="${highResImage}" alt="Album cover">
+                        <br><br>
+                        <a href="${highResImage}" download="${albumData.artistName} - ${albumData.collectionName}.jpg">
+                            <button type="button">Download 1200x1200</button>
+                        </a>
+                    `;
+                    } else {
+                        resultDiv.innerHTML =
+                            "<p>No album found. Try different search terms.</p>";
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML =
+                        "<p>Error searching for album. Please try again.</p>";
+                }
+            }
+        </script>
+    </body>
+</html>
