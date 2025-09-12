@@ -91,8 +91,8 @@ export default function Home() {
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-black rounded-lg p-8 mb-8">
           <div className="flex justify-center mb-8">
-            <div className="bg-yellow-400 border-2 border-black p-4 rounded-sm">
-              <h1 className="text-4xl font-bold text-black tracking-wider">
+            <div className="bg-yellow-400 border-2 border-black px-16 py-6 w-full max-w-2xl">
+              <h1 className="text-5xl font-bold text-black tracking-wider text-center">
                 PLAYART®
               </h1>
             </div>
