@@ -1,5 +1,4 @@
-The Next.js version 13.5.0 doesn't exist. Let's use a valid version. Replace your package.json with this corrected version:
-json{
+{
   "name": "album-art-finder",
   "version": "1.0.0",
   "scripts": {
