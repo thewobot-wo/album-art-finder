@@ -87,15 +87,16 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 py-8">
+    <main className="min-h-screen bg-black py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <h1 className="text-4xl font-bold text-center mb-2 text-gray-800">
-            Album Art Finder
-          </h1>
-          <p className="text-center text-gray-600 mb-8">
-            Find high-quality album artwork from iTunes and Deezer
-          </p>
+        <div className="bg-black rounded-lg p-8 mb-8">
+          <div className="flex justify-center mb-8">
+            <div className="bg-yellow-400 border-2 border-black p-4 rounded-sm">
+              <h1 className="text-4xl font-bold text-black tracking-wider">
+                PLAYART®
+              </h1>
+            </div>
+          </div>
 
           <div className="space-y-4">
             <input
@@ -103,7 +104,7 @@ export default function Home() {
               placeholder="Artist name (optional)"
               value={artist}
               onChange={(e) => setArtist(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-400"
             />
             <input
               type="text"
@@ -111,12 +112,12 @@ export default function Home() {
               value={album}
               onChange={(e) => setAlbum(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && searchAlbum()}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-400"
             />
             <button
               onClick={searchAlbum}
               disabled={loading}
-              className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-yellow-400 text-black p-3 rounded-lg hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
             >
               {loading ? 'Searching...' : 'Search Album Art'}
             </button>
@@ -124,7 +125,7 @@ export default function Home() {
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-8">
+          <div className="bg-red-900 border border-red-600 text-red-200 px-4 py-3 rounded-lg mb-8">
             {error}
           </div>
         )}
@@ -137,7 +138,7 @@ export default function Home() {
               const artistName = getArtistName(result);
 
               return (
-                <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div key={index} className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg overflow-hidden">
                   <div className="aspect-square relative">
                     <img
                       src={result.source === 'itunes' ? result.artworkUrl100 : (result.cover_xl || result.cover_big || 'https://via.placeholder.com/300x300?text=No+Image')}
@@ -157,13 +158,13 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-1 text-gray-800 truncate">
+                    <h3 className="font-semibold text-lg mb-1 text-white truncate">
                       {albumName}
                     </h3>
-                    <p className="text-gray-600 mb-4 truncate">{artistName}</p>
+                    <p className="text-gray-400 mb-4 truncate">{artistName}</p>
                     <button
                       onClick={() => downloadImage(imageUrl, albumName || '', artistName || '')}
-                      className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition-colors"
+                      className="w-full bg-yellow-400 text-black py-2 px-4 rounded hover:bg-yellow-300 transition-colors font-semibold"
                     >
                       Download High-Res
                     </button>
