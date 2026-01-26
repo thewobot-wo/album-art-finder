@@ -98,7 +98,7 @@ export default function Home() {
             <img
               src="/playart-logo.svg"
               alt="PLAYART®"
-              className="h-16 w-auto"
+              className="h-24 w-auto"
             />
           </div>
         </div>
