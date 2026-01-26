@@ -37,10 +37,22 @@ export async function searchAlbums(query: string): Promise<SearchResponse> {
 
     const results: AlbumResult[] = [];
 
+    // Helper function to filter out unwanted results
+    const isUnwantedResult = (item: any): boolean => {
+      const title = (item.collectionName || item.title || '').toLowerCase();
+      const artist = (item.artistName || item.artist?.name || '').toLowerCase();
+
+      // Filter out karaoke, instrumental, cover albums, and compilations
+      const unwantedTerms = ['karaoke', 'instrumental', 'backing track', 'tribute', 'greatest hits', 'compilation', 'various artists'];
+
+      return unwantedTerms.some(term => title.includes(term) || artist.includes(term));
+    };
+
     if (itunesResponse.status === 'fulfilled' && itunesResponse.value.ok) {
       const itunesData: iTunesResponse = await itunesResponse.value.json();
       if (itunesData.results && itunesData.results.length > 0) {
-        results.push(...itunesData.results.map((item: any) => ({
+        const filtered = itunesData.results.filter((item: any) => !isUnwantedResult(item));
+        results.push(...filtered.map((item: any) => ({
           ...item,
           source: 'itunes' as const
         })));
@@ -50,7 +62,8 @@ export async function searchAlbums(query: string): Promise<SearchResponse> {
     if (deezerResponse.status === 'fulfilled' && deezerResponse.value.ok) {
       const deezerData: DeezerResponse = await deezerResponse.value.json();
       if (deezerData.data && deezerData.data.length > 0) {
-        results.push(...deezerData.data.map((item: any) => ({
+        const filtered = deezerData.data.filter((item: any) => !isUnwantedResult(item));
+        results.push(...filtered.map((item: any) => ({
           ...item,
           source: 'deezer' as const
         })));
