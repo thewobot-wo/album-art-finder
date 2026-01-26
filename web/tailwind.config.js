@@ -7,6 +7,13 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        playbill: {
+          yellow: '#fceb00',
+          'yellow-glow': '#fef08a',
+          'yellow-dark': '#d4c000',
+        }
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
