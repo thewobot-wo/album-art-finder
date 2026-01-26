@@ -230,8 +230,17 @@ export default function Home() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                         </svg>
                         <p className="text-[#fceb00] font-bold text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(252,235,0,0.5)]">Download</p>
-                        <p className="text-white text-sm mt-1">High Resolution</p>
+                        <p className="text-white text-sm mt-1">
+                          {result.source === 'itunes' ? '1200×1200' : '1000×1000'} Resolution
+                        </p>
                       </div>
+                    </div>
+
+                    {/* Resolution Badge - Bottom Left */}
+                    <div className="absolute bottom-3 left-3 opacity-90">
+                      <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider backdrop-blur-sm bg-black/80 text-[#fceb00] border border-[#fceb00]/30">
+                        {result.source === 'itunes' ? '1200×1200' : '1000×1000'}
+                      </span>
                     </div>
 
                     {/* Source badge */}
