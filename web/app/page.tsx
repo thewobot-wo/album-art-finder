@@ -92,13 +92,13 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black py-8">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Logo Section - Full Width with Gradient Background */}
+        {/* Logo Section - Compact Banner */}
         <div className="bg-gradient-to-b from-[#fceb00] via-[#fceb00] to-[#e6d800] rounded-lg mb-8 overflow-hidden shadow-[0_0_40px_rgba(252,235,0,0.3)]">
-          <div className="flex justify-center py-3">
+          <div className="flex justify-center py-2 px-8">
             <img
               src="/playart-logo.svg"
               alt="PLAYART®"
-              className="w-full h-auto"
+              className="h-16 w-auto"
             />
           </div>
         </div>
