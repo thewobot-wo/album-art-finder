@@ -91,16 +91,20 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-black rounded-lg p-8 mb-8">
-          <div className="flex justify-center mb-8">
-            <img 
-              src="/playart-logo.svg" 
-              alt="PLAYART®" 
-              className="w-full max-w-2xl h-auto"
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Logo Section - Full Width with Gradient Background */}
+        <div className="bg-gradient-to-b from-[#fceb00] via-[#fceb00] to-[#e6d800] rounded-lg mb-8 overflow-hidden shadow-[0_0_40px_rgba(252,235,0,0.3)]">
+          <div className="flex justify-center py-8">
+            <img
+              src="/playart-logo.svg"
+              alt="PLAYART®"
+              className="w-full h-auto"
             />
           </div>
+        </div>
 
+        {/* Search Form - Centered with Max Width */}
+        <div className="max-w-2xl mx-auto mb-8">
           <div className="space-y-4">
             <input
               type="text"
@@ -108,7 +112,7 @@ export default function Home() {
               value={artist}
               onChange={(e) => setArtist(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
-              className="w-full p-3 bg-transparent border-b-2 border-playbill-yellow/50 text-white focus:outline-none focus:border-playbill-yellow focus:shadow-[0_2px_10px_rgba(252,235,0,0.2)] placeholder-gray-400 transition-all duration-300"
+              className="w-full p-3 bg-transparent border-b-2 border-[#fceb00] text-white focus:outline-none focus:border-[#fceb00] focus:shadow-[0_4px_20px_rgba(252,235,0,0.4)] placeholder-gray-400 transition-all duration-300"
             />
             <div className="space-y-2">
               <input
@@ -117,20 +121,20 @@ export default function Home() {
                 value={album}
                 onChange={(e) => setAlbum(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
-                className="w-full p-3 bg-transparent border-b-2 border-playbill-yellow/50 text-white focus:outline-none focus:border-playbill-yellow focus:shadow-[0_2px_10px_rgba(252,235,0,0.2)] placeholder-gray-400 transition-all duration-300"
+                className="w-full p-3 bg-transparent border-b-2 border-[#fceb00] text-white focus:outline-none focus:border-[#fceb00] focus:shadow-[0_4px_20px_rgba(252,235,0,0.4)] placeholder-gray-400 transition-all duration-300"
               />
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => addTermToAlbum('Broadway')}
                   type="button"
-                  className="px-3 py-1 text-xs bg-transparent text-playbill-yellow border border-playbill-yellow uppercase tracking-wider hover:bg-playbill-yellow hover:text-black transition-all duration-300 font-bold"
+                  className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
                 >
                   + Broadway
                 </button>
                 <button
                   onClick={() => addTermToAlbum('Musical')}
                   type="button"
-                  className="px-3 py-1 text-xs bg-transparent text-playbill-yellow border border-playbill-yellow uppercase tracking-wider hover:bg-playbill-yellow hover:text-black transition-all duration-300 font-bold"
+                  className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
                 >
                   + Musical
                 </button>
@@ -139,7 +143,7 @@ export default function Home() {
             <button
               onClick={searchAlbum}
               disabled={loading}
-              className="w-full bg-playbill-yellow text-black p-4 hover:bg-playbill-yellow-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold uppercase tracking-[0.2em]"
+              className="w-full bg-gradient-to-r from-[#fceb00] to-[#e6d800] text-black p-4 hover:from-[#e6d800] hover:to-[#fceb00] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(252,235,0,0.3)]"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-3">
@@ -154,13 +158,15 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Error Message */}
         {error && (
-          <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-500/30 text-red-200 px-6 py-4 rounded-lg mb-8 backdrop-blur-sm">
+          <div className="max-w-2xl mx-auto bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-500/30 text-red-200 px-6 py-4 rounded-lg mb-8 backdrop-blur-sm">
             <p className="font-bold mb-1">🎭 Performance Issue</p>
             <p className="text-sm">{error}</p>
           </div>
         )}
 
+        {/* Results Grid - Full Width */}
         {results.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((result, index) => {
@@ -172,7 +178,7 @@ export default function Home() {
                 <div
                   key={index}
                   onClick={() => downloadImage(imageUrl, albumName || '', artistName || '')}
-                  className="card-entrance group relative bg-gray-900 border border-playbill-yellow/20 overflow-hidden cursor-pointer transition-all duration-300 hover:border-playbill-yellow/60 hover:shadow-[0_0_30px_rgba(252,235,0,0.15)] hover:scale-[1.02]"
+                  className="card-entrance group relative bg-gray-900 border-2 border-[#fceb00]/30 overflow-hidden cursor-pointer transition-all duration-300 hover:border-[#fceb00] hover:shadow-[0_0_30px_rgba(252,235,0,0.4)] hover:scale-[1.02]"
                 >
                   {/* Image container */}
                   <div className="aspect-square relative overflow-hidden">
@@ -187,13 +193,13 @@ export default function Home() {
                     />
 
                     {/* Hover overlay with download icon */}
-                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <div className="text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                         {/* Download icon */}
-                        <svg className="w-16 h-16 text-playbill-yellow mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-16 h-16 text-[#fceb00] mx-auto mb-3 drop-shadow-[0_0_10px_rgba(252,235,0,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                         </svg>
-                        <p className="text-playbill-yellow font-bold text-lg uppercase tracking-widest">Download</p>
+                        <p className="text-[#fceb00] font-bold text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(252,235,0,0.5)]">Download</p>
                         <p className="text-white text-sm mt-1">High Resolution</p>
                       </div>
                     </div>
@@ -211,8 +217,8 @@ export default function Home() {
                   </div>
 
                   {/* Info section */}
-                  <div className="p-5 bg-gradient-to-b from-gray-900 to-black">
-                    <h3 className="font-bold text-lg mb-1.5 text-white truncate group-hover:text-playbill-yellow transition-colors duration-300">
+                  <div className="p-5 bg-gradient-to-b from-gray-900 to-black border-t-2 border-[#fceb00]/20">
+                    <h3 className="font-bold text-lg mb-1.5 text-white truncate group-hover:text-[#fceb00] transition-colors duration-300">
                       {albumName}
                     </h3>
                     <p className="text-gray-400 text-sm truncate group-hover:text-gray-300 transition-colors duration-300">
