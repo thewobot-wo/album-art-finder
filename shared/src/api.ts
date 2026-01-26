@@ -14,16 +14,20 @@ export async function searchAlbums(query: string): Promise<SearchResponse> {
   }
 
   try {
-    // Enhance Deezer query for better musical/Broadway results
-    const deezerQuery = query.toLowerCase().includes('broadway') ||
-                        query.toLowerCase().includes('musical') ||
-                        query.toLowerCase().includes('cast')
-      ? query
-      : `${query} broadway musical`;
+    // Enhance Deezer query to find original Broadway cast recordings
+    const queryLower = query.toLowerCase();
+    let deezerQuery = query;
+
+    // If query doesn't already specify "cast" or "original", add it
+    if (!queryLower.includes('cast') && !queryLower.includes('original')) {
+      deezerQuery = `${query} original broadway cast`;
+    } else if (!queryLower.includes('broadway') && !queryLower.includes('musical')) {
+      deezerQuery = `${query} broadway`;
+    }
 
     const [itunesResponse, deezerResponse] = await Promise.allSettled([
       fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=3`,
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query + ' original cast')}&entity=album&limit=3`,
         {
           headers: { 'User-Agent': 'Album Art Finder/1.0' },
         }
