@@ -94,7 +94,7 @@ export default function Home() {
       <div className="max-w-6xl mx-auto px-4">
         {/* Logo Section - Full Width with Gradient Background */}
         <div className="bg-gradient-to-b from-[#fceb00] via-[#fceb00] to-[#e6d800] rounded-lg mb-8 overflow-hidden shadow-[0_0_40px_rgba(252,235,0,0.3)]">
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-3">
             <img
               src="/playart-logo.svg"
               alt="PLAYART®"
