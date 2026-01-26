@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
+}
+
+.font-sans {
+  font-family: var(--font-inter);
+}
+
+.font-serif {
+  font-family: var(--font-playfair);
+}

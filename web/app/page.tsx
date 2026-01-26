@@ -1,21 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-
-interface AlbumResult {
-  source: 'itunes' | 'deezer';
-  collectionName?: string;
-  artistName?: string;
-  artworkUrl100?: string;
-  collectionId?: number;
-  title?: string;
-  artist?: { name: string };
-  cover_xl?: string;
-  cover_big?: string;
-  cover_medium?: string;
-  cover_small?: string;
-  id?: number;
-}
+import { AlbumResult, getImageUrl, getAlbumName, getArtistName, getThumbnailUrl } from '@album-art-finder/shared';
 
 export default function Home() {
   const [artist, setArtist] = useState('');
@@ -58,22 +44,6 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getImageUrl = (result: AlbumResult) => {
-    if (result.source === 'itunes') {
-      return result.artworkUrl100?.replace('100x100', '1200x1200') || '';
-    } else {
-      return result.cover_xl || '';
-    }
-  };
-
-  const getAlbumName = (result: AlbumResult) => {
-    return result.source === 'itunes' ? result.collectionName : result.title;
-  };
-
-  const getArtistName = (result: AlbumResult) => {
-    return result.source === 'itunes' ? result.artistName : result.artist?.name;
   };
 
   const addTermToAlbum = (term: string) => {
@@ -137,7 +107,7 @@ export default function Home() {
               placeholder="Artist name (optional)"
               value={artist}
               onChange={(e) => setArtist(e.target.value)}
-              className="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-400"
+              className="w-full p-3 bg-transparent border-b-2 border-yellow-400/50 text-white focus:outline-none focus:border-yellow-400 placeholder-gray-400 transition-colors"
             />
             <div className="space-y-2">
               <input
@@ -146,18 +116,18 @@ export default function Home() {
                 value={album}
                 onChange={(e) => setAlbum(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && searchAlbum()}
-                className="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent placeholder-gray-400"
+                className="w-full p-3 bg-transparent border-b-2 border-yellow-400/50 text-white focus:outline-none focus:border-yellow-400 placeholder-gray-400 transition-colors"
               />
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => addTermToAlbum('Broadway')}
-                  className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600 hover:text-white transition-colors"
+                  className="px-3 py-1 text-xs bg-transparent text-yellow-400 border border-yellow-400 uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-colors"
                 >
                   + Broadway
                 </button>
                 <button
                   onClick={() => addTermToAlbum('Musical')}
-                  className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600 hover:text-white transition-colors"
+                  className="px-3 py-1 text-xs bg-transparent text-yellow-400 border border-yellow-400 uppercase tracking-wider hover:bg-yellow-400 hover:text-black transition-colors"
                 >
                   + Musical
                 </button>
@@ -166,7 +136,7 @@ export default function Home() {
             <button
               onClick={searchAlbum}
               disabled={loading}
-              className="w-full bg-yellow-500 text-black p-3 rounded-lg hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+              className="w-full bg-yellow-400 text-black p-4 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold uppercase tracking-widest"
             >
               {loading ? 'Searching...' : 'Search Album Art'}
             </button>
@@ -187,10 +157,10 @@ export default function Home() {
               const artistName = getArtistName(result);
 
               return (
-                <div key={index} className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg overflow-hidden">
+                <div key={index} className="bg-gray-900 border border-yellow-400/30 shadow-lg overflow-hidden hover:border-yellow-400 transition-colors">
                   <div className="aspect-square relative">
                     <img
-                      src={result.source === 'itunes' ? result.artworkUrl100 : (result.cover_xl || result.cover_big || 'https://via.placeholder.com/300x300?text=No+Image')}
+                      src={getThumbnailUrl(result) || 'https://via.placeholder.com/300x300?text=No+Image'}
                       alt={`${albumName} cover`}
                       className="w-full h-full object-cover"
                       onError={(e) => {

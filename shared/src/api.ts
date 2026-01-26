@@ -1,27 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { AlbumResult, SearchResponse } from './types';
 
-interface iTunesResult {
-  collectionName: string;
-  artistName: string;
-  artworkUrl100: string;
-  collectionId: number;
-  source: string;
+interface iTunesResponse {
+  results: any[];
 }
 
-interface DeezerResult {
-  title: string;
-  artist: { name: string };
-  cover_xl: string;
-  id: number;
-  source: string;
+interface DeezerResponse {
+  data: any[];
 }
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const query = searchParams.get('query');
-
-  if (!query) {
-    return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
+export async function searchAlbums(query: string): Promise<SearchResponse> {
+  if (!query.trim()) {
+    return { results: [], error: 'Query is required' };
   }
 
   try {
@@ -35,34 +24,38 @@ export async function GET(request: NextRequest) {
       fetch(`https://api.deezer.com/search/album?q=${encodeURIComponent(query)}&limit=3`)
     ]);
 
-    const results: (iTunesResult | DeezerResult)[] = [];
+    const results: AlbumResult[] = [];
 
     if (itunesResponse.status === 'fulfilled' && itunesResponse.value.ok) {
-      const itunesData = await itunesResponse.value.json();
+      const itunesData: iTunesResponse = await itunesResponse.value.json();
       if (itunesData.results && itunesData.results.length > 0) {
         results.push(...itunesData.results.map((item: any) => ({
           ...item,
-          source: 'itunes'
+          source: 'itunes' as const
         })));
       }
     }
 
     if (deezerResponse.status === 'fulfilled' && deezerResponse.value.ok) {
-      const deezerData = await deezerResponse.value.json();
+      const deezerData: DeezerResponse = await deezerResponse.value.json();
       if (deezerData.data && deezerData.data.length > 0) {
         results.push(...deezerData.data.map((item: any) => ({
           ...item,
-          source: 'deezer'
+          source: 'deezer' as const
         })));
       }
     }
 
-    return NextResponse.json({ results });
+    if (results.length === 0) {
+      return { results: [], error: 'No albums found' };
+    }
+
+    return { results };
   } catch (error) {
     console.error('Error fetching album data:', error);
-    return NextResponse.json(
-      { error: 'Failed to search for album' },
-      { status: 500 }
-    );
+    return {
+      results: [],
+      error: error instanceof Error ? error.message : 'Failed to search for album'
+    };
   }
 }
