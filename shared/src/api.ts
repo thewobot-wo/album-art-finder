@@ -14,6 +14,13 @@ export async function searchAlbums(query: string): Promise<SearchResponse> {
   }
 
   try {
+    // Enhance Deezer query for better musical/Broadway results
+    const deezerQuery = query.toLowerCase().includes('broadway') ||
+                        query.toLowerCase().includes('musical') ||
+                        query.toLowerCase().includes('cast')
+      ? query
+      : `${query} broadway musical`;
+
     const [itunesResponse, deezerResponse] = await Promise.allSettled([
       fetch(
         `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=3`,
@@ -21,7 +28,7 @@ export async function searchAlbums(query: string): Promise<SearchResponse> {
           headers: { 'User-Agent': 'Album Art Finder/1.0' },
         }
       ),
-      fetch(`https://api.deezer.com/search/album?q=${encodeURIComponent(query)}&limit=3`)
+      fetch(`https://api.deezer.com/search/album?q=${encodeURIComponent(deezerQuery)}&limit=3`)
     ]);
 
     const results: AlbumResult[] = [];

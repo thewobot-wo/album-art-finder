@@ -9,6 +9,7 @@ export default function Home() {
   const [results, setResults] = useState<AlbumResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const searchAlbum = async () => {
     if (!album.trim()) {
@@ -103,58 +104,87 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Search Form - Centered with Max Width */}
+        {/* Search Form - Modern Box Design */}
         <div className="max-w-2xl mx-auto mb-8">
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Artist name (optional)"
-              value={artist}
-              onChange={(e) => setArtist(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
-              className="w-full p-3 bg-transparent border-b-2 border-[#fceb00] text-white focus:outline-none focus:border-[#fceb00] focus:shadow-[0_4px_20px_rgba(252,235,0,0.4)] placeholder-gray-400 transition-all duration-300"
-            />
-            <div className="space-y-2">
-              <input
-                type="text"
-                placeholder="Album name"
-                value={album}
-                onChange={(e) => setAlbum(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
-                className="w-full p-3 bg-transparent border-b-2 border-[#fceb00] text-white focus:outline-none focus:border-[#fceb00] focus:shadow-[0_4px_20px_rgba(252,235,0,0.4)] placeholder-gray-400 transition-all duration-300"
-              />
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => addTermToAlbum('Broadway')}
-                  type="button"
-                  className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
-                >
-                  + Broadway
-                </button>
-                <button
-                  onClick={() => addTermToAlbum('Musical')}
-                  type="button"
-                  className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
-                >
-                  + Musical
-                </button>
+          <div className="bg-gray-900 border-2 border-[#fceb00]/30 rounded-lg p-6 shadow-[0_0_30px_rgba(252,235,0,0.2)]">
+            <div className="space-y-4">
+              {/* Main Album Input */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Enter album name"
+                  value={album}
+                  onChange={(e) => setAlbum(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
+                  className="w-full p-4 bg-black/50 border-2 border-[#fceb00]/50 rounded-lg text-white text-lg focus:outline-none focus:border-[#fceb00] focus:shadow-[0_0_20px_rgba(252,235,0,0.3)] placeholder-gray-400 transition-all duration-300"
+                />
+                <div className="flex gap-2 justify-end mt-2">
+                  <button
+                    onClick={() => addTermToAlbum('Broadway')}
+                    type="button"
+                    className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] rounded uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
+                  >
+                    + Broadway
+                  </button>
+                  <button
+                    onClick={() => addTermToAlbum('Musical')}
+                    type="button"
+                    className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] rounded uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
+                  >
+                    + Musical
+                  </button>
+                </div>
               </div>
+
+              {/* Advanced Options Toggle */}
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                type="button"
+                className="flex items-center gap-2 text-[#fceb00] text-sm hover:text-[#e6d800] transition-colors"
+              >
+                <svg
+                  className={`w-4 h-4 transition-transform duration-300 ${showAdvanced ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+                Advanced options
+              </button>
+
+              {/* Advanced Options - Artist Field */}
+              {showAdvanced && (
+                <div className="pt-2 animate-fadeIn">
+                  <label className="block text-[#fceb00] text-sm font-bold mb-2">Artist Name (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Enter artist name"
+                    value={artist}
+                    onChange={(e) => setArtist(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
+                    className="w-full p-3 bg-black/50 border-2 border-[#fceb00]/50 rounded-lg text-white focus:outline-none focus:border-[#fceb00] focus:shadow-[0_0_20px_rgba(252,235,0,0.3)] placeholder-gray-400 transition-all duration-300"
+                  />
+                </div>
+              )}
+
+              {/* Search Button */}
+              <button
+                onClick={searchAlbum}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-[#fceb00] to-[#e6d800] text-black p-4 rounded-lg hover:from-[#e6d800] hover:to-[#fceb00] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(252,235,0,0.3)] mt-2"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    Searching
+                  </span>
+                ) : 'Search Album Art'}
+              </button>
             </div>
-            <button
-              onClick={searchAlbum}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#fceb00] to-[#e6d800] text-black p-4 hover:from-[#e6d800] hover:to-[#fceb00] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(252,235,0,0.3)]"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-3">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                  </svg>
-                  Searching
-                </span>
-              ) : 'Search Album Art'}
-            </button>
           </div>
         </div>
 
