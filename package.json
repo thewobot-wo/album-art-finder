@@ -1,21 +1,24 @@
 {
-  "name": "album-art-finder-monorepo",
-  "version": "1.0.0",
+  "name": "album-art-finder",
+  "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "web",
-    "native",
-    "shared"
-  ],
   "scripts": {
-    "web:dev": "npm run dev --workspace=web",
-    "web:build": "npm run build --workspace=web",
-    "web:start": "npm run start --workspace=web",
-    "native:start": "npm run start --workspace=native",
-    "native:ios": "npm run ios --workspace=native",
-    "native:android": "npm run android --workspace=native"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^16.3.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "typescript": "^5.2.2"
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
   }
 }
