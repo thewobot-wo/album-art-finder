@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Album } from '@/lib/albums';
+import { BASE_PATH } from '@/lib/basePath';
 import { ArtworkDialog } from '@/components/ArtworkDialog';
 
 const FILTERS = ['Broadway', 'Musical'] as const;
@@ -41,7 +42,7 @@ export default function Home() {
 
     setStatus('loading');
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`${BASE_PATH}/api/search?q=${encodeURIComponent(q)}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setResults(data.results);
@@ -60,7 +61,7 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 pt-14 pb-24 sm:px-6">
       <header className="flex flex-col items-center text-center">
-        <img src="/playart-logo.svg" alt="PLAYART" className="h-12 w-auto sm:h-14" />
+        <img src={`${BASE_PATH}/playart-logo.svg`} alt="PLAYART" className="h-12 w-auto sm:h-14" />
         <p className="mt-4 text-sm text-neutral-400">Find and download high-res album artwork.</p>
       </header>
 

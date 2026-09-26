@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { type Album, showNameFrom } from '@/lib/albums';
+import { BASE_PATH } from '@/lib/basePath';
 
 const SOURCE_LABEL = { itunes: 'iTunes', deezer: 'Deezer' } as const;
 
@@ -22,7 +23,7 @@ export function ArtworkDialog({ album, onClose }: { album: Album | null; onClose
 
   const filename = `art-${showName.trim() || 'untitled'}`;
   const href = album
-    ? `/api/download?${new URLSearchParams({ url: album.full, name: filename })}`
+    ? `${BASE_PATH}/api/download?${new URLSearchParams({ url: album.full, name: filename })}`
     : undefined;
 
   return (
