@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Album } from '@/lib/albums';
 import { ArtworkDialog } from '@/components/ArtworkDialog';
 
@@ -14,6 +14,25 @@ export default function Home() {
   const [results, setResults] = useState<Album[]>([]);
   const [status, setStatus] = useState<Status>('idle');
   const [selected, setSelected] = useState<Album | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // "/" or Cmd/Ctrl+K jumps to the search box with the old query selected.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const cmdK = e.key === 'k' && (e.metaKey || e.ctrlKey);
+      const typing = e.target instanceof HTMLElement && e.target.matches('input, textarea');
+      if (!cmdK && (e.key !== '/' || typing)) return;
+      e.preventDefault();
+      setSelected(null);
+      // Wait a frame so an open dialog has closed and released focus.
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   async function search(e?: React.FormEvent, activeFilters = filters) {
     e?.preventDefault();
@@ -55,14 +74,21 @@ export default function Home() {
             />
           </svg>
           <input
+            ref={inputRef}
             autoFocus
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Album or artist"
             aria-label="Album or artist"
-            className="min-w-0 flex-1 bg-transparent py-2 outline-none placeholder:text-neutral-500"
+            className="peer min-w-0 flex-1 bg-transparent py-2 outline-none placeholder:text-neutral-500"
           />
+          <kbd
+            title="Press / or ⌘K to search"
+            className="hidden rounded border border-white/10 px-1.5 text-xs text-neutral-500 peer-focus:hidden sm:block"
+          >
+            /
+          </kbd>
           <button
             type="submit"
             disabled={!query.trim() || status === 'loading'}
