@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import type { Album } from '@/lib/albums';
-import { BASE_PATH } from '@/lib/basePath';
 import { ArtworkDialog } from '@/components/ArtworkDialog';
 
 const FILTERS = ['Broadway', 'Musical'];
@@ -39,7 +38,7 @@ export default function Home() {
     try {
       // Lowercased so "Hair" and "hair" share a cache entry.
       const q = [trimmed, ...activeFilters].join(' ').toLowerCase();
-      const res = await fetch(`${BASE_PATH}/api/search?q=${encodeURIComponent(q)}`, {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
         signal: controller.signal,
       });
       if (!res.ok) throw new Error(`Search responded ${res.status}`);
@@ -133,7 +132,7 @@ export default function Home() {
           }`}
         >
           <img
-            src={`${BASE_PATH}/playart-logo.svg`}
+            src="/playart-logo.svg"
             alt="PLAYART"
             width={1200}
             height={300}
