@@ -2,11 +2,18 @@
 
 @theme {
   --color-brand: #ffff00;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
   color-scheme: dark;
+  scrollbar-gutter: stable;
+  /* Keeps keyboard-focused albums clear of the sticky header. */
+  scroll-padding-top: 7rem;
+}
+
+/* No background scrolling behind the album preview. */
+html:has(dialog[open]) {
+  overflow: hidden;
 }
 
 body {
@@ -16,4 +23,17 @@ body {
 dialog::backdrop {
   background: rgb(0 0 0 / 0.75);
   backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog[open] {
+    animation: dialog-in 140ms ease-out;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
 }
