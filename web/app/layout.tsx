@@ -1,30 +1,19 @@
-import type { Metadata } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
-import './globals.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-})
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
-})
+import type { Metadata, Viewport } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'PlayArt | Broadway Album Art Finder',
-  description: 'Find and download high-quality album artwork from iTunes and Deezer',
-}
+  title: 'PLAYART',
+  description: 'Find and download high-resolution album artwork for any show.',
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export const viewport: Viewport = {
+  themeColor: '#0a0a0a',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} font-sans`}>{children}</body>
+      <body>{children}</body>
     </html>
-  )
+  );
 }

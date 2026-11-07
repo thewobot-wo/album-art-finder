@@ -1,275 +1,295 @@
 'use client';
 
-import { useState } from 'react';
-import { AlbumResult, getImageUrl, getAlbumName, getArtistName, getThumbnailUrl } from '@album-art-finder/shared';
+import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import type { Album } from '@/lib/albums';
+import { ArtworkDialog } from '@/components/ArtworkDialog';
+
+const FILTERS = ['Broadway', 'Musical'];
+
+type Status = 'idle' | 'loading' | 'done' | 'error';
 
 export default function Home() {
-  const [artist, setArtist] = useState('');
-  const [album, setAlbum] = useState('');
-  const [results, setResults] = useState<AlbumResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [query, setQuery] = useState('');
+  const [filters, setFilters] = useState<string[]>([]);
+  const [results, setResults] = useState<Album[]>([]);
+  const [status, setStatus] = useState<Status>('idle');
+  const [selected, setSelected] = useState<Album | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const inFlight = useRef<AbortController>(null);
 
-  const searchAlbum = async () => {
-    if (!album.trim()) {
-      setError('Please enter an album name');
-      return;
-    }
+  async function search(text: string, activeFilters: string[]) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
 
-    setLoading(true);
-    setError('');
-    setResults([]);
+    // A newer search always wins, even if an older response arrives after it.
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
 
-    const query = artist.trim() ? `${artist.trim()} ${album.trim()}` : album.trim();
+    setStatus('loading');
+    window.scrollTo({ top: 0 });
+
+    const params = new URLSearchParams({ q: trimmed });
+    activeFilters.forEach((f) => params.append('f', f));
+    window.history.replaceState(null, '', `?${params}`);
 
     try {
-      const response = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-
-      if (data.error) {
-        setError(data.error);
-      } else if (data.results && data.results.length > 0) {
-        setResults(data.results);
-      } else {
-        setError('No albums found. Try different search terms.');
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError(`Connection error: ${err instanceof Error ? err.message : 'Please check your internet connection and try again.'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addTermToAlbum = (term: string) => {
-    if (!album.includes(term)) {
-      setAlbum(prev => prev.trim() ? `${prev.trim()} ${term}` : term);
-    }
-  };
-
-  const downloadImage = async (imageUrl: string, albumName: string, artistName: string) => {
-    const showName = prompt('Enter the name of the show:');
-    
-    if (showName === null) {
-      // User cancelled the prompt
-      return;
-    }
-    
-    if (showName.trim() === '') {
-      alert('Please enter a valid show name.');
-      return;
-    }
-    
-    try {
-      // Fetch the image as a blob to avoid cross-origin issues
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      
-      // Create a temporary URL for the blob
-      const blobUrl = URL.createObjectURL(blob);
-      
-      // Create download link
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `art-${showName.trim()}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the blob URL
-      URL.revokeObjectURL(blobUrl);
+      // Lowercased so "Hair" and "hair" share a cache entry.
+      const q = [trimmed, ...activeFilters].join(' ').toLowerCase();
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`Search responded ${res.status}`);
+      const data = await res.json();
+      setResults(data.results);
+      setStatus('done');
     } catch (error) {
-      console.error('Download failed:', error);
-      alert('Download failed. Please try again.');
+      if (controller.signal.aborted) return;
+      console.error('Search failed:', error);
+      setStatus('error');
     }
-  };
+  }
+
+  function toggleFilter(f: string) {
+    const next = filters.includes(f) ? filters.filter((x) => x !== f) : [...filters, f];
+    setFilters(next);
+    if (status !== 'idle') search(query, next);
+  }
+
+  function focusSearch() {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }
+
+  // Restore a search from the URL, so refreshing or sharing a link keeps it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (!q) return;
+    const f = params.getAll('f').filter((x) => FILTERS.includes(x));
+    setQuery(q);
+    setFilters(f);
+    search(q, f);
+  }, []);
+
+  // "/" or Cmd/Ctrl+K jumps to the search box with the old query selected.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const cmdK = e.key === 'k' && (e.metaKey || e.ctrlKey);
+      const typing = e.target instanceof HTMLElement && e.target.matches('input, textarea');
+      if (!cmdK && (e.key !== '/' || typing)) return;
+      e.preventDefault();
+      // Close any open dialog first: it holds focus until it's gone.
+      flushSync(() => setSelected(null));
+      focusSearch();
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  // Arrow keys move through the album grid; up from the top row returns to search.
+  function onGridKeyDown(e: React.KeyboardEvent) {
+    if (!e.key.startsWith('Arrow') || !gridRef.current) return;
+    const albums = Array.from(gridRef.current.querySelectorAll('button'));
+    const index = albums.indexOf(document.activeElement as HTMLButtonElement);
+    if (index < 0) return;
+
+    const columns = albums.filter((a) => a.offsetTop === albums[0].offsetTop).length;
+    const moves: Record<string, number> = {
+      ArrowLeft: -1,
+      ArrowRight: 1,
+      ArrowUp: -columns,
+      ArrowDown: columns,
+    };
+    const target = index + moves[e.key];
+
+    e.preventDefault();
+    if (target < 0 && e.key === 'ArrowUp') focusSearch();
+    // Down from a short second-to-last row lands on the last album.
+    else if (e.key === 'ArrowDown') albums[Math.min(target, albums.length - 1)].focus();
+    else albums[target]?.focus();
+  }
+
+  const started = status !== 'idle';
+  const loading = status === 'loading';
 
   return (
-    <main className="min-h-screen bg-black py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Logo Section - Compact Banner */}
-        <div className="bg-gradient-to-b from-[#fceb00] via-[#fceb00] to-[#e6d800] rounded-lg mb-8 overflow-hidden shadow-[0_0_40px_rgba(252,235,0,0.3)]">
-          <div className="flex justify-center py-2 px-8">
-            <img
-              src="/playart-logo.svg"
-              alt="PLAYART®"
-              className="h-24 w-auto"
-            />
-          </div>
-        </div>
+    <main>
+      <header
+        className={
+          started
+            ? 'sticky top-0 z-10 border-b border-white/5 bg-neutral-950/85 backdrop-blur'
+            : 'pt-[16vh]'
+        }
+      >
+        <div
+          className={`mx-auto flex max-w-6xl px-4 sm:px-6 ${
+            started
+              ? 'flex-wrap items-center gap-x-5 gap-y-2.5 py-3'
+              : 'flex-col items-center gap-4 text-center'
+          }`}
+        >
+          <img
+            src="/playart-logo.svg"
+            alt="PLAYART"
+            width={1200}
+            height={300}
+            className={started ? 'h-8 w-auto' : 'h-14 w-auto sm:h-16'}
+          />
+          {!started && (
+            <p className="mb-5 text-sm text-neutral-400">Find and download high-res album artwork.</p>
+          )}
 
-        {/* Search Form - Modern Box Design */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-gray-900 border-2 border-[#fceb00]/30 rounded-lg p-6 shadow-[0_0_30px_rgba(252,235,0,0.2)]">
-            <div className="space-y-4">
-              {/* Main Album Input */}
-              <div>
-                <input
-                  type="text"
-                  placeholder="Enter album name"
-                  value={album}
-                  onChange={(e) => setAlbum(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
-                  className="w-full p-4 bg-black/50 border-2 border-[#fceb00]/50 rounded-lg text-white text-lg focus:outline-none focus:border-[#fceb00] focus:shadow-[0_0_20px_rgba(252,235,0,0.3)] placeholder-gray-400 transition-all duration-300"
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              search(query, filters);
+            }}
+            className={started ? 'order-3 w-full sm:order-2 sm:w-auto sm:min-w-0 sm:flex-1' : 'w-full max-w-xl'}
+          >
+            <div className="flex items-center gap-2 rounded-full bg-neutral-900 p-1 pl-4 ring-1 ring-white/10 focus-within:ring-2 focus-within:ring-brand">
+              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-5 shrink-0 text-neutral-500">
+                <path
+                  fillRule="evenodd"
+                  d="M9 3.500a5.500 5.500 0 1 0 0 11 5.500 5.500 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.060 1.060l-3.329-3.328A7 7 0 0 1 2 9Z"
+                  clipRule="evenodd"
                 />
-                <div className="flex gap-2 justify-end mt-2">
-                  <button
-                    onClick={() => addTermToAlbum('Broadway')}
-                    type="button"
-                    className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] rounded uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
-                  >
-                    + Broadway
-                  </button>
-                  <button
-                    onClick={() => addTermToAlbum('Musical')}
-                    type="button"
-                    className="px-3 py-1 text-xs bg-transparent text-[#fceb00] border border-[#fceb00] rounded uppercase tracking-wider hover:bg-gradient-to-r hover:from-[#fceb00] hover:to-[#e6d800] hover:text-black transition-all duration-300 font-bold"
-                  >
-                    + Musical
-                  </button>
-                </div>
-              </div>
-
-              {/* Advanced Options Toggle */}
-              <button
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                type="button"
-                className="flex items-center gap-2 text-[#fceb00] text-sm hover:text-[#e6d800] transition-colors"
+              </svg>
+              <input
+                ref={inputRef}
+                autoFocus
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== 'ArrowDown') return;
+                  e.preventDefault();
+                  gridRef.current?.querySelector('button')?.focus();
+                }}
+                placeholder="Show, album or artist"
+                aria-label="Show, album or artist"
+                className="peer min-w-0 flex-1 bg-transparent py-1.5 outline-none placeholder:text-neutral-500"
+              />
+              <kbd
+                title="Press / or ⌘K to search"
+                className="hidden rounded border border-white/10 px-1.5 text-xs text-neutral-400 peer-focus:hidden sm:block"
               >
-                <svg
-                  className={`w-4 h-4 transition-transform duration-300 ${showAdvanced ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-                Advanced options
-              </button>
-
-              {/* Advanced Options - Artist Field */}
-              {showAdvanced && (
-                <div className="pt-2 animate-fadeIn">
-                  <label className="block text-[#fceb00] text-sm font-bold mb-2">Artist Name (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="Enter artist name"
-                    value={artist}
-                    onChange={(e) => setArtist(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && searchAlbum()}
-                    className="w-full p-3 bg-black/50 border-2 border-[#fceb00]/50 rounded-lg text-white focus:outline-none focus:border-[#fceb00] focus:shadow-[0_0_20px_rgba(252,235,0,0.3)] placeholder-gray-400 transition-all duration-300"
-                  />
-                </div>
-              )}
-
-              {/* Search Button */}
+                /
+              </kbd>
               <button
-                onClick={searchAlbum}
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-[#fceb00] to-[#e6d800] text-black p-4 rounded-lg hover:from-[#e6d800] hover:to-[#fceb00] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold uppercase tracking-[0.2em] shadow-[0_4px_20px_rgba(252,235,0,0.3)] mt-2"
+                type="submit"
+                disabled={!query.trim()}
+                className="rounded-full bg-brand px-5 py-1.5 text-sm font-semibold text-black transition hover:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40"
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-3">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
-                    Searching
-                  </span>
-                ) : 'Search Album Art'}
+                Search
               </button>
             </div>
-          </div>
-        </div>
+          </form>
 
-        {/* Error Message */}
-        {error && (
-          <div className="max-w-2xl mx-auto bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-500/30 text-red-200 px-6 py-4 rounded-lg mb-8 backdrop-blur-sm">
-            <p className="font-bold mb-1">🎭 Performance Issue</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Results Grid - Full Width */}
-        {results.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {results.map((result, index) => {
-              const imageUrl = getImageUrl(result);
-              const albumName = getAlbumName(result);
-              const artistName = getArtistName(result);
-
+          <div className={`flex gap-2 ${started ? 'order-2 ml-auto sm:order-3 sm:ml-0' : ''}`}>
+            {FILTERS.map((f) => {
+              const on = filters.includes(f);
               return (
-                <div
-                  key={index}
-                  onClick={() => downloadImage(imageUrl, albumName || '', artistName || '')}
-                  className="card-entrance group relative bg-gray-900 border-2 border-[#fceb00]/30 overflow-hidden cursor-pointer transition-all duration-300 hover:border-[#fceb00] hover:shadow-[0_0_30px_rgba(252,235,0,0.4)] hover:scale-[1.02]"
+                <button
+                  key={f}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => toggleFilter(f)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+                    on
+                      ? 'bg-brand/10 text-brand ring-brand/50'
+                      : 'text-neutral-400 ring-white/10 hover:text-neutral-200 hover:ring-white/25'
+                  }`}
                 >
-                  {/* Image container */}
-                  <div className="aspect-square relative overflow-hidden">
-                    <img
-                      src={getThumbnailUrl(result) || 'https://via.placeholder.com/300x300?text=No+Image'}
-                      alt={`${albumName} cover`}
-                      className="w-full h-full object-cover artwork-image transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/300x300?text=No+Image';
-                      }}
-                    />
-
-                    {/* Hover overlay with download icon */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <div className="text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                        {/* Download icon */}
-                        <svg className="w-16 h-16 text-[#fceb00] mx-auto mb-3 drop-shadow-[0_0_10px_rgba(252,235,0,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                        </svg>
-                        <p className="text-[#fceb00] font-bold text-lg uppercase tracking-widest drop-shadow-[0_0_10px_rgba(252,235,0,0.5)]">Download</p>
-                        <p className="text-white text-sm mt-1">
-                          {result.source === 'itunes' ? '1200×1200' : '1000×1000'} Resolution
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Resolution Badge - Bottom Left */}
-                    <div className="absolute bottom-3 left-3 opacity-90">
-                      <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider backdrop-blur-sm bg-black/80 text-[#fceb00] border border-[#fceb00]/30">
-                        {result.source === 'itunes' ? '1200×1200' : '1000×1000'}
-                      </span>
-                    </div>
-
-                    {/* Source badge */}
-                    <div className="absolute top-3 right-3 opacity-90">
-                      <span className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider backdrop-blur-sm ${
-                        result.source === 'itunes'
-                          ? 'bg-black/80 text-white border border-white/20'
-                          : 'bg-orange-500/90 text-white border border-orange-300/20'
-                      }`}>
-                        {result.source === 'itunes' ? 'iTunes' : 'Deezer'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Info section */}
-                  <div className="p-5 bg-gradient-to-b from-gray-900 to-black border-t-2 border-[#fceb00]/20">
-                    <h3 className="font-bold text-lg mb-1.5 text-white truncate group-hover:text-[#fceb00] transition-colors duration-300">
-                      {albumName}
-                    </h3>
-                    <p className="text-gray-400 text-sm truncate group-hover:text-gray-300 transition-colors duration-300">
-                      {artistName}
-                    </p>
-                  </div>
-                </div>
+                  {f}
+                </button>
               );
             })}
           </div>
+        </div>
+      </header>
+
+      <section aria-busy={loading} className="mx-auto max-w-6xl px-4 pt-6 pb-24 sm:px-6">
+        <p aria-live="polite" className="sr-only">
+          {status === 'done' && `${results.length} albums found`}
+        </p>
+
+        {status === 'error' ? (
+          <Message>
+            Something went wrong with that search.{' '}
+            <button
+              type="button"
+              onClick={() => search(query, filters)}
+              className="font-medium text-neutral-100 underline underline-offset-2 hover:text-brand"
+            >
+              Try again
+            </button>
+          </Message>
+        ) : loading && results.length === 0 ? (
+          <Grid>
+            {Array.from({ length: 10 }, (_, i) => (
+              <Skeleton key={i} />
+            ))}
+          </Grid>
+        ) : status === 'done' && results.length === 0 ? (
+          <Message>No albums found. Try a different spelling or fewer words.</Message>
+        ) : (
+          <Grid
+            ref={gridRef}
+            onKeyDown={onGridKeyDown}
+            className={`transition-opacity ${loading ? 'opacity-50' : ''}`}
+          >
+            {results.map((album, i) => (
+              <button
+                key={album.id}
+                type="button"
+                onClick={() => setSelected(album)}
+                className="group min-w-0 text-left focus:outline-none"
+              >
+                <div className="aspect-square overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-white/5 transition group-hover:ring-white/25 group-focus-visible:ring-2 group-focus-visible:ring-brand">
+                  <img
+                    src={album.thumb}
+                    alt=""
+                    loading={i < 10 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    onLoad={(e) => (e.currentTarget.dataset.loaded = '')}
+                    className="size-full object-cover opacity-0 transition duration-300 data-loaded:opacity-100 motion-safe:group-hover:scale-[1.03]"
+                  />
+                </div>
+                <p className="mt-2.5 truncate text-sm font-medium">{album.title}</p>
+                <p className="truncate text-xs text-neutral-400">{album.artist}</p>
+              </button>
+            ))}
+          </Grid>
         )}
-      </div>
+      </section>
+
+      <ArtworkDialog album={selected} onClose={() => setSelected(null)} />
     </main>
   );
+}
+
+function Grid({ className = '', ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      className={`grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${className}`}
+      {...props}
+    />
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="aspect-square rounded-xl bg-neutral-900" />
+      <div className="mt-2.5 h-3.5 w-3/4 rounded bg-neutral-900" />
+      <div className="mt-1.5 h-3 w-1/2 rounded bg-neutral-900" />
+    </div>
+  );
+}
+
+function Message({ children }: { children: React.ReactNode }) {
+  return <p className="pt-10 text-center text-sm text-neutral-400">{children}</p>;
 }
